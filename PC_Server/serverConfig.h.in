@@ -1,0 +1,2 @@
+#define pc_server_VERSION_MAJOR @pc_server_VERSION_MAJOR@
+#define pc_server_VERSION_MINOR @pc_server_VERSION_MINOR@

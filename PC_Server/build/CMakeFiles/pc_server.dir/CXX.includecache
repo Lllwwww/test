@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/xywu/code_test/test/PC_Server/flex_can.h
+
+/home/xywu/code_test/test/PC_Server/serv.cpp
+sys/types.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+arpa/inet.h
+-
+stdio.h
+-
+unistd.h
+-
+stdio.h
+-
+errno.h
+-
+string.h
+-
+iostream
+-
+fstream
+-
+ctime
+-
+flex_can.h
+/home/xywu/code_test/test/PC_Server/flex_can.h
+serverConfig.h
+/home/xywu/code_test/test/PC_Server/serverConfig.h
+
+serverConfig.h
+
