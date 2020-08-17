@@ -1,3 +1,0 @@
-/home/xywu/code_test/test/PC_Server/build/CMakeFiles/rebuild_cache.dir
-/home/xywu/code_test/test/PC_Server/build/CMakeFiles/pc_server.dir
-/home/xywu/code_test/test/PC_Server/build/CMakeFiles/edit_cache.dir

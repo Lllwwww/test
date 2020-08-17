@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/pc_server.dir/serv.cpp.o  -o pc_server 
