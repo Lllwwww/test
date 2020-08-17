@@ -116,8 +116,8 @@ serv_addr.sin_family=AF_INET;
 serv_addr.sin_port=htons(PORT);
 
 //serv_addr.sin_addr.s_addr=inet_addr("172.26.60.205");
-//serv_addr.sin_addr.s_addr=inet_addr("172.26.60.205");
-serv_addr.sin_addr.s_addr=inet_addr("192.168.137.57");
+serv_addr.sin_addr.s_addr=htonl(INADDR_ANY); 
+//serv_addr.sin_addr.s_addr=inet_addr("192.168.137.57");
 bzero(&(serv_addr.sin_zero),8);
 msg_buff_temp1->cs = 0;
 
