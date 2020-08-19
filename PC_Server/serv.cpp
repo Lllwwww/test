@@ -11,6 +11,7 @@
 #include<fstream>
 #include<ctime>
 #include"flex_can.h"
+#include "serv.h"
 #include"serverConfig.h"
 
 
@@ -82,6 +83,9 @@ flexcan_msgbuff_t *msg_buff_temp = &msg_buff;
 flexcan_msgbuff_t msg_buff1 = { 0,0,{0},0 };
 flexcan_msgbuff_t *msg_buff_temp1 = &msg_buff1;
 
+NetDataHeader_t send_buff_header = {0,0,0};
+NetDataBase_t send_buff = {{0,0,0},{0}};
+
 uint8_t channel;
 	uint8_t msgid_h;
 	uint8_t msgid_l;
@@ -93,8 +97,8 @@ uint8_t channel;
 transferdata_t test_time_buff={16,0,0,0,0x0,0,{0b11111111,0b11111111,0,4,5,6,7,0},};
 transferdata_t test_time_6b2;
 test_time_6b2.channel=1;
-test_time_6b2.msgid_h=0x6;
-test_time_6b2.msgid_l=0xb2;
+test_time_6b2.msgid_h=0xF;
+test_time_6b2.msgid_l=0xF1;
 test_time_6b2.datalength=8;
 test_time_6b2.time_h=0;
 test_time_6b2.time_l=0;
@@ -117,7 +121,7 @@ serv_addr.sin_port=htons(PORT);
 
 //serv_addr.sin_addr.s_addr=inet_addr("172.26.60.205");
 serv_addr.sin_addr.s_addr=htonl(INADDR_ANY); 
-//serv_addr.sin_addr.s_addr=inet_addr("192.168.137.57");
+//serv_addr.sin_addr.s_addr=inet_addr("192.168.8.100");
 bzero(&(serv_addr.sin_zero),8);
 msg_buff_temp1->cs = 0;
 
@@ -168,7 +172,6 @@ while(1)
   if(remotefd != -1)//接收到了信号
     {
         send(remotefd,"VER10",5,0);
-
       while(1)
     {
       count++;
@@ -183,7 +186,7 @@ while(1)
         test_time_buff.time_l=(uint8_t)((mpc_time_ms)&0xFF);
         if(count%3==0)
         { 
-          std::cout<<"send 6b2";
+          // std::cout<<"send 6b2";
           test_time_6b2.time_h=(uint8_t)((mpc_time_s<<2)|((mpc_time_ms>>8)&0x03));
           test_time_6b2.time_l=(uint8_t)((mpc_time_ms)&0xFF);
           test_time_6b2.data[5]=(uint8_t)(((vehicle_time_set->tm_hour-0x07)&0x0F)<<4);
@@ -223,14 +226,14 @@ while(1)
           // }
         // std::cout<<"time:"<<(int)mpc_time_s<<"."<<(int)mpc_time_ms<<std::endl;
         print_time=(test_time_buff.time_h>> 2);
-        std::cout<<"time:"<<(int)print_time<<" s";
+        // std::cout<<"time:"<<(int)print_time<<" s";
         // writefile<<"time:"<<(int)print_time<<" s";
          print_time=(((test_time_buff.time_h&0x03) << 8) +test_time_buff.time_l);
          if(last_ms>print_time)
          {
            std::cerr<<"error frame"<<std::endl;
          }
-      std::cout<<(int)print_time<<" ms"<<std::endl;
+      // std::cout<<(int)print_time<<" ms"<<std::endl;
       // writefile<<(int)print_time<<" ms"<<std::endl;
       if(msg_rear==127)
       {
@@ -253,31 +256,49 @@ while(1)
           }
           else
             msg_head++;
-            for (i = 0; i < 14; i++)
-            {
-                testdata[array_count][i] = tmp_buf[i];
+          for (i = 0; i < 14; i++)
+          {
+              testdata[array_count][i] = tmp_buf[i];
+          }
+          array_count++;
             }
-            array_count++;
-             }
       }
       else
       {
-     
-         // send(remotefd,"begin",5,0);
-          if((n=recv(remotefd,recv_buf,10,0))> 0)
+        send_buff.dataHeader.nDataType = 0x0;
+        send_buff.dataHeader.nDataSize = array_count * sizeof(tmp_buf);
+        send_buff.dataHeader.nReserved = 0x0;
+
+        memset(send_buff.szData,0,sizeof(send_buff.szData));
+        memmove(send_buff.szData,testdata,array_count * sizeof(tmp_buf));
+
+        int send_status = send(remotefd,(void * )&send_buff,sizeof(send_buff.dataHeader)+send_buff.dataHeader.nDataSize,0);
+        if(send_status < 0) //发送状态错误 退出连接
         {
-          // int status;
-          //printf("weather send data : \n");
-          //scanf("%d",&status);
-         // if(status ==0)
-          //{send(remotefd,testdata,sizeof(testdata),0);}
-          send(remotefd,testdata,sizeof(testdata),0);
-          if(strncmp(recv_buf,"quit",4)==0)
           break;
-          memset(recv_buf,0,14);
-          array_count=0;
-          memset(testdata,0,sizeof(testdata));
+          std::cout<<"failed to send"<<std::endl;
         }
+        std::cout << "send: "<<sizeof(send_buff.dataHeader)+send_buff.dataHeader.nDataSize<<"Bytes"<<std::endl;
+        // 记录上一次数据发送的时间
+        // mul_ix_time_send = xTaskGetTickCount();
+
+        array_count=0;
+        memset(testdata,0,sizeof(testdata));
+        usleep(100000);
+         // send(remotefd,"begin",5,0);
+        //   if((n=recv(remotefd,recv_buf,10,0))> 0)
+        // {
+        //   // int status;
+        //   //printf("weather send data : \n");
+        //   //scanf("%d",&status);
+        //  // if(status ==0)
+        //   //{send(remotefd,testdata,sizeof(testdata),0);}
+        //   send(remotefd,testdata,sizeof(testdata),0);
+        //   if(strncmp(recv_buf,"quit",4)==0)
+        //   break;
+        //   memset(recv_buf,0,14);
+        //   array_count=0;
+        //   memset(testdata,0,sizeof(testdata));
 
       }
     }
