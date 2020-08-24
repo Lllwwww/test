@@ -85,7 +85,10 @@ flexcan_msgbuff_t *msg_buff_temp1 = &msg_buff1;
 
 NetDataHeader_t send_buff_header = {0,0,0};
 NetDataBase_t send_buff = {{0,0,0},{0}};
-
+NetDataBase_t *pSend_buff =nullptr;
+uint8_t type=0;
+uint16_t udatasize =0;
+uint8_t reser=0;
 uint8_t channel;
 	uint8_t msgid_h;
 	uint8_t msgid_l;
@@ -163,6 +166,7 @@ clock_gettime(CLOCK_REALTIME, &time_now);
 uint16_t mpc_time_s,mpc_time_ms;
 uint16_t print_time;
 uint16_t last_ms;
+uint8_t msg_id_count=0;
 int count=0;
 last_ms=0;
 while(1)
@@ -175,6 +179,9 @@ while(1)
       while(1)
     {
       count++;
+      msg_id_count++;
+      test_time_6b2.msgid_h=0xF;
+      test_time_6b2.msgid_l=msg_id_count;
       
       clock_gettime(CLOCK_REALTIME, &time_now);
       // global_times = time(NULL);
@@ -265,26 +272,49 @@ while(1)
       }
       else
       {
-        send_buff.dataHeader.nDataType = 0x0;
-        send_buff.dataHeader.nDataSize = array_count * sizeof(tmp_buf);
-        send_buff.dataHeader.nReserved = 0x0;
 
-        memset(send_buff.szData,0,sizeof(send_buff.szData));
-        memmove(send_buff.szData,testdata,array_count * sizeof(tmp_buf));
+        type=0x1;
+        udatasize = array_count * sizeof(tmp_buf);
+        reser=0x1;
+        // memset(pSend_buff, 0,sizeof(pSend_buff));
+        uint16_t size = 0;
+        pSend_buff = &send_buff;
+        char * buffer = (char* )pSend_buff;
+        memcpy(buffer,(char * )&type,sizeof(type));
+        buffer+=sizeof(type);
+        size+=sizeof(type);
 
-        int send_status = send(remotefd,(void * )&send_buff,sizeof(send_buff.dataHeader)+send_buff.dataHeader.nDataSize,0);
+        memcpy(buffer,&udatasize,sizeof(udatasize));
+        buffer+=sizeof(udatasize);   
+        size+=sizeof(udatasize);
+
+        memcpy(buffer,&reser,sizeof(reser));
+        buffer+=sizeof(reser);
+        size+=sizeof(reser);
+
+        memmove(buffer,testdata,array_count * 14*sizeof(char));
+        size+=array_count * 14*sizeof(char);
+        // pSend_buff-=size;
+        // send_buff.dataHeader.nDataType = 0x1;
+        // send_buff.dataHeader.nDataSize = array_count * sizeof(tmp_buf);
+        // send_buff.dataHeader.nReserved = 0x0;
+
+        // memset(pSend_buff->szData,0,sizeof(send_buff.szData));
+        // memmove(pSend_buff->szData,testdata,array_count * sizeof(tmp_buf));
+
+        int send_status = send(remotefd,(char * )pSend_buff,size,0);
         if(send_status < 0) //发送状态错误 退出连接
         {
           break;
           std::cout<<"failed to send"<<std::endl;
         }
-        std::cout << "send: "<<sizeof(send_buff.dataHeader)+send_buff.dataHeader.nDataSize<<"Bytes"<<std::endl;
+        std::cout << "send: "<<size<<" Bytes"<<std::endl;
         // 记录上一次数据发送的时间
         // mul_ix_time_send = xTaskGetTickCount();
 
         array_count=0;
         memset(testdata,0,sizeof(testdata));
-        usleep(100000);
+        usleep(20000);
          // send(remotefd,"begin",5,0);
         //   if((n=recv(remotefd,recv_buf,10,0))> 0)
         // {
