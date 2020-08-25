@@ -6,9 +6,11 @@
 typedef struct
 {
 	uint8_t nDataType;											//数据包类型，标识对应的对象类型
-	uint16_t nDataSize;											//数据包中szData真实数据的长度
 	uint8_t nReserved;											//数据包中保留位
+	uint8_t nDataSize[2];											//数据包中szData真实数据的长度
+
 }NetDataHeader_t;
+
 
 /*  数据包类型 */
 typedef struct

@@ -58,7 +58,7 @@ void msg_parser(transferdata_t *mb_message,int head, uint8_t* data) {
 
 uint8_t tmp_buf[14]={0};
 char recv_buf[14]={0};
-uint8_t testdata[50][14]={0};
+uint8_t testdata[60][14]={0};
 char state_array[5]={};
 
 int main()
@@ -166,6 +166,7 @@ clock_gettime(CLOCK_REALTIME, &time_now);
 uint16_t mpc_time_s,mpc_time_ms;
 uint16_t print_time;
 uint16_t last_ms;
+uint16_t size ;
 uint8_t msg_id_count=0;
 int count=0;
 last_ms=0;
@@ -176,8 +177,10 @@ while(1)
   if(remotefd != -1)//接收到了信号
     {
         send(remotefd,"VER10",5,0);
+        count =0;
       while(1)
     {
+
       count++;
       msg_id_count++;
       test_time_6b2.msgid_h=0xF;
@@ -272,37 +275,37 @@ while(1)
       }
       else
       {
+        if (count <100000){
+          size =0 ;
+          send_buff.dataHeader.nDataType = 0x1;
+          send_buff.dataHeader.nDataSize[0] = (uint8_t)((array_count * MAX_DATA_LENGTH * sizeof(char))&(0x00FF));
+          send_buff.dataHeader.nDataSize[1] = (uint8_t)(((array_count * MAX_DATA_LENGTH * sizeof(char))>>8)&(0x00FF));
+          send_buff.dataHeader.nReserved = 0x0;
 
-        type=0x1;
-        udatasize = array_count * sizeof(tmp_buf);
-        reser=0x1;
-        // memset(pSend_buff, 0,sizeof(pSend_buff));
-        uint16_t size = 0;
-        pSend_buff = &send_buff;
-        char * buffer = (char* )pSend_buff;
-        memcpy(buffer,(char * )&type,sizeof(type));
-        buffer+=sizeof(type);
-        size+=sizeof(type);
+          memset(send_buff.szData,0,sizeof(send_buff.szData));
+          memmove(send_buff.szData,testdata,array_count * sizeof(tmp_buf));
+          size=sizeof(send_buff.dataHeader) + array_count * MAX_DATA_LENGTH * sizeof(char);
+          // pSend_buff-=size;
+          // send_buff.dataHeader.nDataType = 0x1;
+          // send_buff.dataHeader.nDataSize = array_count * sizeof(tmp_buf);
+          // send_buff.dataHeader.nReserved = 0x0;
 
-        memcpy(buffer,&udatasize,sizeof(udatasize));
-        buffer+=sizeof(udatasize);   
-        size+=sizeof(udatasize);
+          // memset(pSend_buff->szData,0,sizeof(send_buff.szData));
+          // memmove(pSend_buff->szData,testdata,array_count * sizeof(tmp_buf));
 
-        memcpy(buffer,&reser,sizeof(reser));
-        buffer+=sizeof(reser);
-        size+=sizeof(reser);
+        }
+        else {
+          size =0 ;
+          send_buff.dataHeader.nDataType = 0xFF;
+          send_buff.dataHeader.nDataSize[0] =0;
+          send_buff.dataHeader.nDataSize[1] = 0;
+          send_buff.dataHeader.nReserved = 0x0;
+          size=sizeof(send_buff.dataHeader);
 
-        memmove(buffer,testdata,array_count * 14*sizeof(char));
-        size+=array_count * 14*sizeof(char);
-        // pSend_buff-=size;
-        // send_buff.dataHeader.nDataType = 0x1;
-        // send_buff.dataHeader.nDataSize = array_count * sizeof(tmp_buf);
-        // send_buff.dataHeader.nReserved = 0x0;
+        }
+        std::cout << "count : "<<count<<std::endl;
 
-        // memset(pSend_buff->szData,0,sizeof(send_buff.szData));
-        // memmove(pSend_buff->szData,testdata,array_count * sizeof(tmp_buf));
-
-        int send_status = send(remotefd,(char * )pSend_buff,size,0);
+        int send_status = send(remotefd,(char * )&send_buff,size,0);
         if(send_status < 0) //发送状态错误 退出连接
         {
           break;
