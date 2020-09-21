@@ -1,0 +1,10 @@
+syntax="proto3";
+package cloudProtoPackage;
+
+message cloudControl{
+    bool remoteStart= 1;
+}
+
+
+
+

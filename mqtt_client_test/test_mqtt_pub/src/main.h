@@ -1,0 +1,1 @@
+extern char tmp_buf[50][11];//声明变量

@@ -1,0 +1,71 @@
+syntax="proto3";
+package acuProtoPackage;
+enum accStatusT{
+ACC_OFF=0;
+ACC_INIT=1;
+ACC_STANDBY=2;
+ACC_AKTIV_regelt=3;
+ACC_OVERRIDE=4;
+ACC_Abschaltreaktion=5;
+reversibler_Fehler_im_ACC_system=6;
+irreversibler_Fehler_im_ACC_system=7;
+}
+enum  adapModusT{
+Manual =0;
+AI=1;
+}
+enum epbStatusT{
+offen =0;
+Bremse_geschl=1;
+Aktuator_im_Lauf=2;
+Fehler_oder_unbekannt=3;
+}
+enum gearModeT{
+Zwischenstellung =0;
+Init =1;
+Position_P=5;
+Position_R=6;
+Position_N=7;
+Position_D=8;
+Position_S=9;
+Effizienz=0xA;
+Tipp_in_S=0xD;
+Tipp_in_D=0xE;
+Fehler=0xF;
+}
+enum tsk_status_t{
+Hauptschalter_aus=0;
+init=1;
+passiv=2;
+aktiv=3;
+uebertreten=4;
+brake_only_mode=5;
+reversibel_aus=6;
+irreversibel_aus=7;
+}
+enum steerModeT{
+OFF=0;
+ready=1;
+RPCSfcRackSpmonTbtMon=2;
+RPCSfcRackSpMon=3;
+}
+message ACUCarInfo{
+    string carName =1;
+    string ACUSwv =2;
+    uint32 serverAlive=3;
+    string timeStamp=4;
+    accStatusT ACCStatus=5;
+    adapModusT  ADAPMdus=6;
+    epbStatusT  crEpb=7;
+    gearModeT  crGear=8;
+    float  crSpeed=9;
+    double  crSteer=10;
+    uint32  crTsk=11;
+    double  locationLat=12;
+    double  locationLng=13;
+    float   heading=14;
+    uint32  mileage=15;
+    uint32  steerMode=16;
+    double  tgAcc=17;
+    double  fuel=18;
+}
